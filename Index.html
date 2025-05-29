@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fighting Game - Auto Redirect</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+        color: white;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        text-align: center;
+      }
+
+      .container {
+        max-width: 600px;
+        padding: 40px;
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .loading {
+        font-size: 1.2em;
+        margin: 30px 0;
+        color: #4ecdc4;
+      }
+
+      .device-info {
+        background: #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        text-align: left;
+      }
+
+      .manual-links {
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 15px 30px;
+        margin: 10px;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: transform 0.3s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .spinner {
+        border: 4px solid #333;
+        border-top: 4px solid #4ecdc4;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .countdown {
+        font-size: 1.5em;
+        color: #ff6b6b;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🥊 Fighting Game</h1>
+
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Detecting your device...</p>
+        <div class="countdown" id="countdown">
+          Redirecting in <span id="timer">3</span> seconds
+        </div>
+      </div>
+
+      <div class="device-info" id="deviceInfo">
+        <h3>🔍 Device Detection:</h3>
+        <p><strong>User Agent:</strong> <span id="userAgent"></span></p>
+        <p><strong>Screen Size:</strong> <span id="screenSize"></span></p>
+        <p><strong>Device Type:</strong> <span id="deviceType"></span></p>
+        <p>
+          <strong>Redirecting to:</strong> <span id="redirectTarget"></span>
+        </p>
+      </div>
+
+      <div class="manual-links">
+        <h3>Or choose manually:</h3>
+        <a href="./pc/" class="btn">🖥️ PC Version (Keyboard)</a>
+        <a href="./mobile/" class="btn">📱 Mobile Version (Touch)</a>
+      </div>
+
+      <div style="margin-top: 30px; font-size: 0.9em; color: #888">
+        <p>Auto-detection checks your device type and screen size</p>
+        <p>You can always switch versions using the links above</p>
+      </div>
+    </div>
+
+    <script>
+      // Device detection function
+      function detectDevice() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const screenWidth = window.screen.width;
+        const screenHeight = window.screen.height;
+
+        // Display device info
+        document.getElementById("userAgent").textContent = navigator.userAgent;
+        document.getElementById(
+          "screenSize"
+        ).textContent = `${screenWidth} x ${screenHeight}`;
+
+        // Check for mobile devices
+        const isMobile =
+          /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(
+            userAgent
+          );
+        const isSmallScreen = screenWidth <= 768 || screenHeight <= 768;
+        const isTouchDevice =
+          "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+        // Determine device type
+        let deviceType = "Desktop";
+        let redirectTo = "pc";
+
+        if (isMobile || isSmallScreen || isTouchDevice) {
+          deviceType = "Mobile/Tablet";
+          redirectTo = "mobile";
+        }
+
+        // Special cases
+        if (userAgent.includes("ipad")) {
+          deviceType = "iPad (Mobile Version)";
+          redirectTo = "mobile";
+        }
+
+        if (screenWidth <= 480) {
+          deviceType = "Phone (Mobile Version)";
+          redirectTo = "mobile";
+        }
+
+        // Update display
+        document.getElementById("deviceType").textContent = deviceType;
+        document.getElementById(
+          "redirectTarget"
+        ).textContent = `${redirectTo.toUpperCase()} Version`;
+
+        return redirectTo;
+      }
+
+      // Countdown and redirect
+      function startRedirect() {
+        const targetVersion = detectDevice();
+        let countdown = 3;
+
+        const timer = setInterval(() => {
+          document.getElementById("timer").textContent = countdown;
+          countdown--;
+
+          if (countdown < 0) {
+            clearInterval(timer);
+            // Redirect to appropriate version
+            window.location.href = `./${targetVersion}/`;
+          }
+        }, 1000);
+      }
+
+      // Allow manual override to stay on this page
+      let redirectEnabled = true;
+
+      document.addEventListener("click", () => {
+        redirectEnabled = false;
+      });
+
+      document.addEventListener("keydown", () => {
+        redirectEnabled = false;
+      });
+
+      // Start the detection and redirect process
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          if (redirectEnabled) {
+            startRedirect();
+          }
+        }, 1000);
+      });
+
+      // Add click handlers to manual links
+      document.querySelectorAll(".btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const href = btn.getAttribute("href");
+
+          // Store user preference
+          localStorage.setItem(
+            "preferredVersion",
+            href.includes("mobile") ? "mobile" : "pc"
+          );
+
+          // Redirect with loading message
+          document.querySelector(".loading p").textContent = "Loading game...";
+          document.querySelector(".spinner").style.display = "block";
+
+          setTimeout(() => {
+            window.location.href = href;
+          }, 500);
+        });
+      });
+
+      // Check for stored preference
+      window.addEventListener("load", () => {
+        const preferred = localStorage.getItem("preferredVersion");
+        if (preferred && redirectEnabled) {
+          setTimeout(() => {
+            window.location.href = `./${preferred}/`;
+          }, 2000);
+        }
+      });
+    </script>
+  </body>
+</html>
